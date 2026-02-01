@@ -36,6 +36,10 @@ Examples:
         default="claude-sonnet-4-20250514",
         help="Claude model to use (default: claude-sonnet-4-20250514)",
     )
+    parser.add_argument(
+        "--output", "-o",
+        help="Save transcript to file (.md for Markdown, .txt for plain text)",
+    )
     args = parser.parse_args()
 
     # Get API key from environment
@@ -56,7 +60,7 @@ Examples:
     ]
 
     # Create and run the agent
-    agent = Agent(provider=provider, tools=tools)
+    agent = Agent(provider=provider, tools=tools, transcript_path=args.output)
     agent.run(args.task)
 
 

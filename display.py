@@ -24,19 +24,23 @@ from rich.live import Live
 from rich.syntax import Syntax
 
 from providers.base import ToolCall, Response
+from transcript import Transcript
 
 
 class Display:
     """Handles all terminal output with colors and formatting."""
 
-    def __init__(self):
+    def __init__(self, transcript_path: str | None = None):
         self.console = Console()
         self._live = None
+        self.transcript = Transcript(transcript_path) if transcript_path else None
 
     def show_task(self, task: str) -> None:
         """Display the user's task in a blue panel."""
         self.console.print(Panel(task, title="Task", border_style="blue"))
         self.console.print()
+        if self.transcript:
+            self.transcript.write_task(task)
 
     def show_thinking(self) -> None:
         """Show a spinner while the agent is thinking."""
@@ -86,6 +90,8 @@ class Display:
         json_str = json.dumps(request_info, indent=2)
         syntax = Syntax(json_str, "json", theme="monokai", word_wrap=True)
         self.console.print(Panel(syntax, title="LLM Request", border_style="yellow"))
+        if self.transcript:
+            self.transcript.write_llm_request(messages, tools)
 
     def show_llm_response(self, response: Response) -> None:
         """Display what the LLM returned."""
@@ -115,6 +121,8 @@ class Display:
         syntax = Syntax(json_str, "json", theme="monokai", word_wrap=True)
         self.console.print(Panel(syntax, title="LLM Response", border_style="magenta"))
         self.console.print()
+        if self.transcript:
+            self.transcript.write_llm_response(response)
 
     def show_tool_call(self, tool_call: ToolCall) -> None:
         """Display a tool call with its parameters."""
@@ -132,6 +140,8 @@ class Display:
 
         content = tool_call.name + "\n" + "\n".join(params_lines)
         self.console.print(Panel(content, title="Tool Call", border_style="cyan"))
+        if self.transcript:
+            self.transcript.write_tool_call(tool_call)
 
     def show_tool_result(self, result: str) -> None:
         """Display the result from a tool execution."""
@@ -143,13 +153,21 @@ class Display:
 
         self.console.print(Panel(display_result, title="Result", border_style="green"))
         self.console.print()
+        if self.transcript:
+            self.transcript.write_tool_result(result)
 
     def show_answer(self, answer: str) -> None:
         """Display the agent's final answer."""
         self.hide_thinking()
         self.console.print(Panel(answer, title="Answer", border_style="white"))
+        if self.transcript:
+            self.transcript.write_answer(answer)
+            self.transcript.save()
 
     def show_error(self, error: str) -> None:
         """Display an error message."""
         self.hide_thinking()
         self.console.print(Panel(error, title="Error", border_style="red"))
+        if self.transcript:
+            self.transcript.write_error(error)
+            self.transcript.save()

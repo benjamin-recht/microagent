@@ -26,17 +26,18 @@ class Agent:
     4. OBSERVE - Add results to conversation and loop back
     """
 
-    def __init__(self, provider: Provider, tools: list[Tool]):
+    def __init__(self, provider: Provider, tools: list[Tool], transcript_path: str | None = None):
         """
         Initialize the agent.
 
         Args:
             provider: The LLM provider to use (e.g., ClaudeProvider)
             tools: List of tools the agent can use
+            transcript_path: Optional path to save transcript (.md or .txt)
         """
         self.provider = provider
         self.tools = tools
-        self.display = Display()
+        self.display = Display(transcript_path=transcript_path)
 
         # Create a lookup dict for quick tool access
         self._tool_map = {tool.name: tool for tool in tools}
